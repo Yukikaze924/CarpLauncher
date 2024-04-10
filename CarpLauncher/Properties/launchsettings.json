@@ -1,0 +1,10 @@
+﻿{
+    "profiles": {
+      "CarpLauncher (Unpackaged)": {
+        "commandName": "Project"
+      },
+      "CarpLauncher (Package)": {
+        "commandName": "MsixPackage"
+      }
+    }
+}

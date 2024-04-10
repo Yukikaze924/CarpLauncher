@@ -1,0 +1,134 @@
+﻿<Page
+    x:Class="CarpLauncher.Views.GamePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    mc:Ignorable="d">
+
+    <Grid x:Name="ContentArea"
+          Margin="{StaticResource NavigationViewPageContentMargin}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="0">
+            <Image Source="/Assets/crafting_table_front.png"
+                       Height="78"/>
+
+            <StackPanel Spacing="2"
+                            Margin="12 0">
+                <TextBlock Text="Game"
+                               Style="{StaticResource TitleTextBlockStyle}"/>
+
+                <TextBlock Text="Powered by Carp.org"
+                               Foreground="{ThemeResource AccentTextFillColorTertiaryBrush}"
+                               Style="{StaticResource CaptionTextBlockStyle}"/>
+
+                <TextBlock Text="Manage your Minecraft Profile"
+                               Style="{StaticResource CaptionTextBlockStyle}"/>
+            </StackPanel>
+        </StackPanel>
+        
+
+        <controls:Segmented Grid.Row="1"
+                            SelectedIndex="0"
+                            SelectionMode="Single"
+                            SelectionChanged="OnSelectionChanged"
+                            HorizontalAlignment="Stretch"
+                            Margin="15 40">
+            <controls:SegmentedItem Content="Downloaded"
+                                    Icon="{ui:SymbolIcon Symbol=Download}"/>
+            <controls:SegmentedItem Content="Minecraft"
+                                    Icon="{ui:BitmapIcon Source=/Assets/grass_block_side.png}"/>
+            <controls:SegmentedItem Content="Forge"
+                                    Icon="{ui:BitmapIcon Source=/Assets/ForgeIcon.png}" />
+            <controls:SegmentedItem Content="Fabric"
+                                    Icon="{ui:BitmapIcon Source=/Assets/FabricIcon.png}" />
+        </controls:Segmented>
+
+        <ScrollViewer Name="GamePanel"
+                      Grid.Row="2">
+            <StackPanel>
+                <CommandBar Margin="0 0 0 20" DefaultLabelPosition="Right">
+                    <AppBarButton Icon="Add" Label="Add"/>
+                    <AppBarButton Icon="Edit" Label="Edit"/>
+                    <AppBarButton Icon="Refresh" Label="Refresh" Command="{x:Bind ViewModel.RefreshProfilesCommand}"/>
+                    <CommandBar.SecondaryCommands>
+                        <AppBarButton Icon="Setting" Label="Settings">
+                            <AppBarButton.KeyboardAccelerators>
+                                <KeyboardAccelerator Modifiers="Control" Key="I" />
+                            </AppBarButton.KeyboardAccelerators>
+                        </AppBarButton>
+                    </CommandBar.SecondaryCommands>
+                </CommandBar>
+                <ItemsControl ItemsSource="{x:Bind ViewModel.Profiles, Mode=TwoWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <controls:SettingsCard Header="{Binding Id}"
+                                                   HeaderIcon="{ui:BitmapIcon Source=/Assets/Grass.png}"
+                                                   Description="{Binding DirName}">
+                                <Button Content="Launch"
+                                        Style="{ThemeResource AccentButtonStyle}"/>
+                            </controls:SettingsCard>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+        <StackPanel Name="MinecraftPanel"
+                    Grid.Row="2"
+                    Spacing="15"
+                    Visibility="Collapsed">
+            <controls:SettingsCard Header="Version"
+                                   HeaderIcon="{ui:BitmapIcon Source=/Assets/VersionIcon.png}"
+                                   Description="Choose a minecraft version">
+                <ComboBox ItemsSource="{x:Bind ViewModel.MinecraftVersionList}"
+                          SelectedItem="{x:Bind ViewModel.SelectedMinecraftVersion, Mode=TwoWay}"/>
+            </controls:SettingsCard>
+            <Button Content="Download"
+                    Command="{x:Bind ViewModel.DownloadVanillaMinecraftCommand}"
+                    Style="{ThemeResource AccentButtonStyle}"
+                    Margin="0 40"
+                    HorizontalAlignment="Stretch"/>
+        </StackPanel>
+        <StackPanel Name="ForgePanel"
+                    Grid.Row="2"
+                    Spacing="15"
+                    Visibility="Collapsed">
+            <controls:SettingsCard Header="Version"
+                                   HeaderIcon="{ui:BitmapIcon Source=/Assets/VersionIcon.png}"
+                                   Description="Choose a minecraft version for Forge">
+                <ComboBox ItemsSource="{x:Bind ViewModel.MinecraftVersionList}"
+                          SelectedItem="{x:Bind ViewModel.SelectedForgeMinecraftVersion, Mode=TwoWay}"/>
+            </controls:SettingsCard>
+            <controls:SettingsCard Header="Forge"
+                                   HeaderIcon="{ui:BitmapIcon Source=/Assets/ForgeIcon.png}"
+                                   Description="Choose a Forge Mod Loader API version">
+                <ComboBox ItemsSource="{x:Bind ViewModel.ForgeVersionList}"
+                          SelectedItem="{x:Bind ViewModel.SelectedForgeVersion, Mode=TwoWay}"/>
+            </controls:SettingsCard>
+            <InfoBar IsOpen="{x:Bind ViewModel.IsFailed, Mode=TwoWay}"
+                     Severity="Error"
+                     Title="Error"
+                     Message="Failed to fetch data from Forge"
+                     />
+            <Button Content="Download"
+                    Style="{ThemeResource AccentButtonStyle}"
+                    Margin="0 40"
+                    HorizontalAlignment="Stretch"/>
+        </StackPanel>
+        <StackPanel Name="FabricPanel"
+                    Grid.Row="2"
+                    Spacing="15"
+                    Visibility="Collapsed">
+
+        </StackPanel>
+
+    </Grid>
+</Page>

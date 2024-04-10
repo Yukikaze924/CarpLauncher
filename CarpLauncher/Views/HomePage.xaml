@@ -1,0 +1,43 @@
+﻿<Page
+    x:Class="CarpLauncher.Views.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="ContentArea">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0">
+            
+        </Grid>
+
+        <Grid Grid.Column="1"
+              Opacity="0.4"
+              Background="{ThemeResource SmokeFillColorDefaultBrush}">
+            <StackPanel VerticalAlignment="Bottom"
+                        Padding="15 30"
+                        Spacing="15">
+                
+                
+                
+                <Button Content="Launch"
+                        Height="78"
+                        Width="211"
+                        Background="Transparent"
+                        BorderThickness="1"
+                        BorderBrush="{ThemeResource AccentFillColorSelectedTextBackgroundBrush}"
+                        
+                        FontSize="{StaticResource SubtitleTextBlockFontSize}"
+                        FontFamily="Arial"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Bottom"/>
+            </StackPanel>
+        </Grid>
+        
+    </Grid>
+</Page>
