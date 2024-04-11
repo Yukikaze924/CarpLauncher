@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics.Metrics;
+using System.Diagnostics;
 using System.Net;
+using CarpLauncher.Contracts.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Newtonsoft.Json.Linq;
@@ -13,6 +14,8 @@ namespace CarpLauncher.ViewModels;
 
 public partial class GameViewModel : ObservableObject
 {
+    private INavigationService _navigationService;
+
     [ObservableProperty]
     private List<string> _minecraftVersionList = new()
     {
@@ -66,11 +69,8 @@ public partial class GameViewModel : ObservableObject
         "1.18.1",
         "1.18.2"
     };
-
     [ObservableProperty]
     private string _selectedMinecraftVersion;
-
-
     [ObservableProperty]
     private string _selectedForgeMinecraftVersion;
     [ObservableProperty]
@@ -123,58 +123,38 @@ public partial class GameViewModel : ObservableObject
 
     [ObservableProperty]
     private ObservableCollection<VersionInfo>? _profiles;
-    private void _refreshProfiles()
+    [ObservableProperty]
+    private string? _profilesCountText;
+    partial void OnProfilesChanged(ObservableCollection<VersionInfo>? value)
     {
-        //lock (_rwLock)
-        //{
-        //    Profiles = new ObservableCollection<VersionInfo>(Core.Core.GetGameCore().VersionLocator.GetAllGames().ToList());
-        //}
-        Profiles = new ObservableCollection<VersionInfo>(Core.Core.GetGameCore().VersionLocator.GetAllGames().ToList());
+        if (value is null) return;
+        ProfilesCountText = $"Games ({value.Count})";
+    }
+    public void _refreshProfiles() => Profiles = new ObservableCollection<VersionInfo>(Core.Core.GetGameCore().VersionLocator.GetAllGames().ToList());
+    [RelayCommand]
+    private void RefreshProfiles() => _refreshProfiles();
+    [RelayCommand]
+    private void OpenGameFolder()
+    {
+        Process.Start(new ProcessStartInfo()
+        {
+            FileName = core.RootPath,
+            UseShellExecute = true,
+            Verb = "open"
+        });
     }
     [RelayCommand]
-    private void RefreshProfiles()
-    {
-        //Profiles = new ObservableCollection<VersionInfo>(core.VersionLocator.GetAllGames().ToList());
-        _refreshProfiles();
-    }
+    private void GotoSettings() => _navigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
 
 
     private DefaultGameCore core = Core.Core.GetGameCore();
-    private FileSystemWatcher watcher = new();
 
 
-    public GameViewModel()
+    public GameViewModel(INavigationService navigationService)
     {
         _refreshProfiles();
 
-        watcher.Path = core.RootPath;
-        watcher.IncludeSubdirectories = true;
-        watcher.NotifyFilter = NotifyFilters.DirectoryName;
-        watcher.Deleted += (sender, args) =>
-        {
-            var dispatcherQueue = (App.Current as App).DispatcherQueue;
-            dispatcherQueue.TryEnqueue(() =>
-            {
-                try
-                {
-                    _refreshProfiles();
-                }
-                catch { return; }
-            });
-        };
-        watcher.Created += (sender, args) =>
-        {
-            var dispatcherQueue = (App.Current as App).DispatcherQueue;
-            dispatcherQueue.TryEnqueue(() =>
-            {
-                try
-                {
-                    _refreshProfiles();
-                }
-                catch { return; }
-            });
-        };
-        watcher.EnableRaisingEvents = true;
+        _navigationService = navigationService;
     }
 
 

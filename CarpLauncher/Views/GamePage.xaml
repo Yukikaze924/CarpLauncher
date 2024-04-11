@@ -36,13 +36,14 @@
         </StackPanel>
         
 
-        <controls:Segmented Grid.Row="1"
+        <controls:Segmented x:Name="Segmented"
+                            Grid.Row="1"
                             SelectedIndex="0"
                             SelectionMode="Single"
                             SelectionChanged="OnSelectionChanged"
                             HorizontalAlignment="Stretch"
                             Margin="15 40">
-            <controls:SegmentedItem Content="Downloaded"
+            <controls:SegmentedItem Content="{x:Bind ViewModel.ProfilesCountText, Mode=TwoWay}"
                                     Icon="{ui:SymbolIcon Symbol=Download}"/>
             <controls:SegmentedItem Content="Minecraft"
                                     Icon="{ui:BitmapIcon Source=/Assets/grass_block_side.png}"/>
@@ -55,12 +56,14 @@
         <ScrollViewer Name="GamePanel"
                       Grid.Row="2">
             <StackPanel>
-                <CommandBar Margin="0 0 0 20" DefaultLabelPosition="Right">
-                    <AppBarButton Icon="Add" Label="Add"/>
-                    <AppBarButton Icon="Edit" Label="Edit"/>
+                <CommandBar Margin="0 0 0 20"
+                            DefaultLabelPosition="Right">
+                    <AppBarButton Icon="Add" Label="Add" Click="AppBarButton_Click"/>
+                    <AppBarButton Icon="MoveToFolder" Label="Import"/>
                     <AppBarButton Icon="Refresh" Label="Refresh" Command="{x:Bind ViewModel.RefreshProfilesCommand}"/>
                     <CommandBar.SecondaryCommands>
-                        <AppBarButton Icon="Setting" Label="Settings">
+                        <AppBarButton Icon="NewWindow" Label="Open Folder" Command="{x:Bind ViewModel.OpenGameFolderCommand}"/>
+                        <AppBarButton Icon="Setting" Label="Settings" Command="{x:Bind ViewModel.GotoSettingsCommand}">
                             <AppBarButton.KeyboardAccelerators>
                                 <KeyboardAccelerator Modifiers="Control" Key="I" />
                             </AppBarButton.KeyboardAccelerators>
@@ -72,7 +75,8 @@
                         <DataTemplate>
                             <controls:SettingsCard Header="{Binding Id}"
                                                    HeaderIcon="{ui:BitmapIcon Source=/Assets/Grass.png}"
-                                                   Description="{Binding DirName}">
+                                                   Description="{Binding DirName}"
+                                                   Margin="0 0 0 8">
                                 <Button Content="Launch"
                                         Style="{ThemeResource AccentButtonStyle}"/>
                             </controls:SettingsCard>

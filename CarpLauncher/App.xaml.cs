@@ -1,9 +1,7 @@
 ﻿using CarpLauncher.Activation;
 using CarpLauncher.Contracts.Services;
-using CarpLauncher.Core;
 using CarpLauncher.Core.Contracts.Services;
 using CarpLauncher.Core.Services;
-using CarpLauncher.Helpers;
 using CarpLauncher.Models;
 using CarpLauncher.Services;
 using CarpLauncher.ViewModels;
@@ -13,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
-using Windows.UI.Core;
 
 namespace CarpLauncher;
 
@@ -43,7 +40,10 @@ public partial class App : Application
 
     public static WindowEx MainWindow { get; } = new MainWindow();
 
-    public static UIElement? AppTitlebar { get; set; }
+    public static UIElement? AppTitlebar
+    {
+        get; set;
+    }
 
     public App()
     {
@@ -74,24 +74,22 @@ public partial class App : Application
             // Views and ViewModels
             services.AddSingleton<GameViewModel>();
             services.AddTransient<GamePage>();
+            //
             services.AddSingleton<SettingsViewModel>();
             services.AddTransient<SettingsPage>();
+            //
             services.AddTransient<HomeViewModel>();
             services.AddTransient<HomePage>();
+            //
             services.AddTransient<ShellPage>();
             services.AddTransient<ShellViewModel>();
 
             // Configuration
             services.Configure<LocalSettingsOptions>(context.Configuration.GetSection(nameof(LocalSettingsOptions)));
-
-            // Utilities
-            services.AddSingleton<ProfileManager>();
         }).
         Build();
 
         UnhandledException += App_UnhandledException;
-
-        Core.Core.InitLaunchCore();
     }
 
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
@@ -104,19 +102,64 @@ public partial class App : Application
     {
         base.OnLaunched(args);
 
-        await App.GetService<IActivationService>().ActivateAsync(args);
+        await GetService<IActivationService>().ActivateAsync(args);
 
-        //watcher.Path = Core.Core.GetGameCore().RootPath;
-        //watcher.IncludeSubdirectories = true;
-        //watcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.Attributes | NotifyFilters.Size | NotifyFilters.LastWrite | NotifyFilters.LastAccess | NotifyFilters.CreationTime | NotifyFilters.Security;
-        //watcher.Changed += (sender, args) =>
-        //{
-            
-        //};
-        //watcher.EnableRaisingEvents = true;
+        await InitServicesAsync();
+
+        InitFileSystemWatcher();
     }
 
     public DispatcherQueue DispatcherQueue { get; } = DispatcherQueue.GetForCurrentThread();
 
-    //private FileSystemWatcher watcher = new();
+    private FileSystemWatcher watcher = new();
+
+    private async Task InitServicesAsync()
+    {
+        var _localSettingsService = GetService<ILocalSettingsService>();
+
+        var rootPath
+            = await _localSettingsService.ReadSettingAsync<string>("GameRootPath")
+            ?? $@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\.minecraft";
+        await _localSettingsService.SaveSettingAsync<string>("GameRootPath", rootPath);
+
+        var backgroundImageUrl = await _localSettingsService.ReadSettingAsync<string>("BackgroundImageUrl");
+        if (string.IsNullOrWhiteSpace(backgroundImageUrl))
+        {
+            await _localSettingsService.SaveSettingAsync("BackgroundImageUrl", "/");
+        }
+
+        Core.Core.InitLaunchCore(await _localSettingsService.ReadSettingAsync<string>("GameRootPath"));
+    }
+
+    private void InitFileSystemWatcher()
+    {
+        watcher.Path = Core.Core.GetGameCore().RootPath + "\\versions";
+        watcher.IncludeSubdirectories = true;
+        watcher.NotifyFilter = NotifyFilters.DirectoryName;
+        watcher.Deleted += (sender, args) =>
+        {
+            var dispatcherQueue = (App.Current as App).DispatcherQueue;
+            dispatcherQueue.TryEnqueue(() =>
+            {
+                try
+                {
+                    GetService<GameViewModel>()._refreshProfiles();
+                }
+                catch { return; }
+            });
+        };
+        watcher.Created += (sender, args) =>
+        {
+            var dispatcherQueue = (App.Current as App).DispatcherQueue;
+            dispatcherQueue.TryEnqueue(() =>
+            {
+                try
+                {
+                    GetService<GameViewModel>()._refreshProfiles();
+                }
+                catch { return; }
+            });
+        };
+        watcher.EnableRaisingEvents = true;
+    }
 }

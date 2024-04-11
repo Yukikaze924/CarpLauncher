@@ -12,11 +12,11 @@ public class Core
 {
     private static DefaultGameCore core;
 
-    public static void InitLaunchCore()
+    public static void InitLaunchCore(string path)
     {
         var clientToken = new Guid("88888888-8888-8888-8888-888888888888");
         //var rootPath = Path.GetFullPath(".minecraft\");
-        var rootPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\.minecraft";
+        var rootPath = path;
         core = new DefaultGameCore
         {
             ClientToken = clientToken,
@@ -28,8 +28,6 @@ public class Core
             },
             GameLogResolver = new DefaultGameLogResolver()
         };
-
-        //App.GetService<ProfileManager>().Profiles = new ObservableCollection<VersionInfo>(core.VersionLocator.GetAllGames().ToList());
     }
 
     public static DefaultGameCore GetGameCore()

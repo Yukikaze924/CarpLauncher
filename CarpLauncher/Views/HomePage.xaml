@@ -4,12 +4,18 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
 
     <Grid x:Name="ContentArea">
+        <Grid.Background>
+            <ImageBrush ImageSource="{x:Bind ViewModel.BackgroundImageUrl}"
+                        Stretch="UniformToFill"/>
+        </Grid.Background>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/>
-            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0">
@@ -17,25 +23,37 @@
         </Grid>
 
         <Grid Grid.Column="1"
-              Opacity="0.4"
-              Background="{ThemeResource SmokeFillColorDefaultBrush}">
+              MinWidth="300"
+              Background="{ThemeResource LayerOnMicaBaseAltFillColorDefaultBrush}">
+            
             <StackPanel VerticalAlignment="Bottom"
-                        Padding="15 30"
+                        Padding="15 40"
                         Spacing="15">
-                
-                
-                
+
                 <Button Content="Launch"
-                        Height="78"
-                        Width="211"
-                        Background="Transparent"
-                        BorderThickness="1"
-                        BorderBrush="{ThemeResource AccentFillColorSelectedTextBackgroundBrush}"
-                        
+                        Height="60"
+                        Width="210"
+                        Style="{ThemeResource AccentButtonStyle}"
                         FontSize="{StaticResource SubtitleTextBlockFontSize}"
                         FontFamily="Arial"
-                        HorizontalAlignment="Stretch"
+                        HorizontalAlignment="Center"
                         VerticalAlignment="Bottom"/>
+
+                <controls:WrapPanel Width="210"
+                                    HorizontalSpacing="4"
+                                    HorizontalAlignment="Center">
+                    <controls:WrapPanel.Resources>
+                        <Style TargetType="Button">
+                            <Setter Property="Width" Value="103"/>
+                            <Setter Property="Height" Value="40"/>
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </controls:WrapPanel.Resources>
+                    <Button Content="Version"
+                            HorizontalAlignment="Left"/>
+                    <Button Content="Settings"
+                            HorizontalAlignment="Right"/>
+                </controls:WrapPanel>
             </StackPanel>
         </Grid>
         

@@ -45,4 +45,9 @@ public sealed partial class GamePage : Page
                 break;
         }
     }
+
+    private void AppBarButton_Click(object sender, RoutedEventArgs e)
+    {
+        Segmented.SelectedIndex = 1;
+    }
 }
