@@ -7,7 +7,7 @@ namespace CarpLauncher.Helpers
     public class DialogHelper
     {
         public static async Task<ContentDialogResult> ShowRegularContentDialogAsync
-            (string title, string content, string primaryBtnText = "Confirm", string closeBtnText = "Close")
+        (string title, string content, string primaryBtnText = "Confirm", string closeBtnText = "Close")
         {
             ContentDialog dialog = new ContentDialog();
 
@@ -19,10 +19,7 @@ namespace CarpLauncher.Helpers
             dialog.CloseButtonText = closeBtnText;
             dialog.DefaultButton = ContentDialogButton.Primary;
             dialog.Content = new Controls.ContentDialog(content);
-            dialog.RequestedTheme = (ElementTheme)Enum
-                .Parse(typeof(ElementTheme),
-                await App.GetService<ILocalSettingsService>()
-                .ReadSettingAsync<string>("AppBackgroundRequestedTheme"));
+            dialog.RequestedTheme = App.GetService<IThemeSelectorService>().Theme;
 
             var result = await dialog.ShowAsync();
 

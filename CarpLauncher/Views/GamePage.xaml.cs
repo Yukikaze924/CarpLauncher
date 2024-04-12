@@ -1,7 +1,11 @@
-﻿using CarpLauncher.ViewModels;
+﻿using CarpLauncher.Contracts.Services;
+using CarpLauncher.ViewModels;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using ProjBobcat.Class.Model;
 
 namespace CarpLauncher.Views;
 
@@ -49,5 +53,15 @@ public sealed partial class GamePage : Page
     private void AppBarButton_Click(object sender, RoutedEventArgs e)
     {
         Segmented.SelectedIndex = 1;
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+        if (e.OriginalSource is Button button && button.DataContext is VersionInfo version)
+        {
+            var id = version.Id;
+            App.GetService<HomeViewModel>().CurrentSelectedVersion = id;
+            App.GetService<INavigationService>().NavigateTo(typeof(HomeViewModel).FullName!);
+        }
     }
 }

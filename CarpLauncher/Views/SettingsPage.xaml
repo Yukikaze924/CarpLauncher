@@ -11,7 +11,8 @@
     mc:Ignorable="d">
 
     <ScrollViewer Margin="{StaticResource NavigationViewPageContentMargin}">
-		<StackPanel Spacing="8">
+		<StackPanel Spacing="8"
+                    Margin="0 0 0 30">
 
 			<StackPanel Orientation="Horizontal">
 				<Image Source="/Assets/Icons/SettingIcon.png"
@@ -42,8 +43,9 @@
                           SelectedItem="{x:Bind ViewModel.AppTheme, Mode=TwoWay}"/>
             </controls:SettingsCard>
             <controls:SettingsCard Header="Background Image"
-                                   HeaderIcon="{ui:FontIcon Glyph=&#xE7FA;}">
-                <controls:WrapPanel HorizontalSpacing="8">
+                                   HeaderIcon="{ui:FontIcon Glyph=&#xE7FA;}"
+                                   Description="Customize Home page background image">
+                <controls:WrapPanel HorizontalSpacing="15">
                     <TextBlock Text="{x:Bind ViewModel.BackgroundImageUrl, Mode=TwoWay}"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                MaxWidth="200"
@@ -64,7 +66,7 @@
                                    HeaderIcon="{ui:BitmapIcon Source=/Assets/Grass.png}"
                                    Description="Path to where .minecraft folder is located">
                 
-                <controls:WrapPanel HorizontalSpacing="8">
+                <controls:WrapPanel HorizontalSpacing="15">
                     <TextBlock Text="{x:Bind ViewModel.GameRootPath, Mode=TwoWay}"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                MaxWidth="200"
@@ -73,10 +75,15 @@
                             Command="{x:Bind ViewModel.ChooseGameRootPathCommand}"/>
                 </controls:WrapPanel>
             </controls:SettingsCard>
+            <controls:SettingsCard Header="Version Isolated"
+                                   HeaderIcon="{ui:FontIcon Glyph=&#xE89A;}"
+                                   Description="Is each Game Version isolated">
+                <ToggleSwitch IsOn="{x:Bind ViewModel.IsVersionIsolate, Mode=TwoWay}"/>
+            </controls:SettingsCard>
             <controls:SettingsExpander Header="Java"
                                        HeaderIcon="{ui:BitmapIcon Source=/Assets/JavaIcon.png}"
                                        Description="Minecraft needs a Java compiler"
-                                       IsExpanded="False">
+                                       IsExpanded="True">
                 <controls:SettingsExpander.Items>
                     <controls:SettingsCard>
                         <controls:SettingsCard.Header>

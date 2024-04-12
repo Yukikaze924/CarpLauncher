@@ -4,6 +4,8 @@ using System.Net;
 using CarpLauncher.Contracts.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using Newtonsoft.Json.Linq;
 using ProjBobcat.Class.Helper;
 using ProjBobcat.Class.Model;
@@ -14,7 +16,8 @@ namespace CarpLauncher.ViewModels;
 
 public partial class GameViewModel : ObservableObject
 {
-    private INavigationService _navigationService;
+    private readonly INavigationService _navigationService;
+    private readonly DefaultGameCore core = Core.Core.GetGameCore();
 
     [ObservableProperty]
     private List<string> _minecraftVersionList = new()
@@ -130,24 +133,13 @@ public partial class GameViewModel : ObservableObject
         if (value is null) return;
         ProfilesCountText = $"Games ({value.Count})";
     }
-    public void _refreshProfiles() => Profiles = new ObservableCollection<VersionInfo>(Core.Core.GetGameCore().VersionLocator.GetAllGames().ToList());
+    public void _refreshProfiles() => Profiles = new ObservableCollection<VersionInfo>(Core.Core.GetGameCore().VersionLocator.GetAllGames());
     [RelayCommand]
     private void RefreshProfiles() => _refreshProfiles();
     [RelayCommand]
-    private void OpenGameFolder()
-    {
-        Process.Start(new ProcessStartInfo()
-        {
-            FileName = core.RootPath,
-            UseShellExecute = true,
-            Verb = "open"
-        });
-    }
+    private void OpenGameFolder() => Process.Start(new ProcessStartInfo {FileName = core.RootPath,UseShellExecute = true,Verb = "open"});
     [RelayCommand]
     private void GotoSettings() => _navigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
-
-
-    private DefaultGameCore core = Core.Core.GetGameCore();
 
 
     public GameViewModel(INavigationService navigationService)

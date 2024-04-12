@@ -30,14 +30,25 @@
                         Padding="15 40"
                         Spacing="15">
 
-                <Button Content="Launch"
-                        Height="60"
+                <Button Command="{x:Bind ViewModel.LaunchMinecraftCommand}"
+                        Height="76"
                         Width="210"
                         Style="{ThemeResource AccentButtonStyle}"
-                        FontSize="{StaticResource SubtitleTextBlockFontSize}"
-                        FontFamily="Arial"
                         HorizontalAlignment="Center"
-                        VerticalAlignment="Bottom"/>
+                        VerticalAlignment="Bottom">
+                    <Button.Content>
+                        <StackPanel>
+                            <TextBlock Text="Launch"
+                                       FontSize="{StaticResource SubtitleTextBlockFontSize}"
+                                       Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="{x:Bind ViewModel.CurrentSelectedVersion, Mode=TwoWay}"
+                                       FontSize="{StaticResource BodyTextBlockFontSize}"
+                                       Foreground="{ThemeResource TextOnAccentFillColorSecondaryBrush}"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
 
                 <controls:WrapPanel Width="210"
                                     HorizontalSpacing="4"
@@ -46,12 +57,14 @@
                         <Style TargetType="Button">
                             <Setter Property="Width" Value="103"/>
                             <Setter Property="Height" Value="40"/>
-                            <Setter Property="CornerRadius" Value="2"/>
+                            <Setter Property="CornerRadius" Value="4"/>
                         </Style>
                     </controls:WrapPanel.Resources>
                     <Button Content="Version"
+                            Command="{x:Bind ViewModel.GotoGameCommand}"
                             HorizontalAlignment="Left"/>
                     <Button Content="Settings"
+                            Command="{x:Bind ViewModel.GotoSettingsCommand}"
                             HorizontalAlignment="Right"/>
                 </controls:WrapPanel>
             </StackPanel>

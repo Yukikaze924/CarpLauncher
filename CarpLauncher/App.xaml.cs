@@ -78,7 +78,7 @@ public partial class App : Application
             services.AddSingleton<SettingsViewModel>();
             services.AddTransient<SettingsPage>();
             //
-            services.AddTransient<HomeViewModel>();
+            services.AddSingleton<HomeViewModel>();
             services.AddTransient<HomePage>();
             //
             services.AddTransient<ShellPage>();
@@ -120,10 +120,17 @@ public partial class App : Application
         var rootPath
             = await _localSettingsService.ReadSettingAsync<string>("GameRootPath")
             ?? $@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\.minecraft";
-        await _localSettingsService.SaveSettingAsync<string>("GameRootPath", rootPath);
+        await _localSettingsService.SaveSettingAsync("GameRootPath", rootPath);
+
+        // 潜在导致debugger问题
+        var isVersionIsolate = await _localSettingsService.ReadSettingAsync<bool>("IsVersionIsolate");
+        if (!isVersionIsolate)
+        {
+            await _localSettingsService.SaveSettingAsync("IsVersionIsolate", true);
+        }
 
         var backgroundImageUrl = await _localSettingsService.ReadSettingAsync<string>("BackgroundImageUrl");
-        if (string.IsNullOrWhiteSpace(backgroundImageUrl))
+        if (string.IsNullOrEmpty(backgroundImageUrl))
         {
             await _localSettingsService.SaveSettingAsync("BackgroundImageUrl", "/");
         }
