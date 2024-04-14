@@ -46,9 +46,16 @@ public partial class HomeViewModel : ObservableRecipient
         try
         {
             selectedGame = core.VersionLocator.GetGame(CurrentSelectedVersion);
+            if (selectedGame is null)
+            {
+                throw new InvalidDataException();
+            }
         }
         catch
         {
+            await DialogHelper.ShowRegularContentDialogAsync
+            ("Error", $"{CurrentSelectedVersion} does not existed!");
+            CurrentSelectedVersion = "choose a version";
             return;
         }
 

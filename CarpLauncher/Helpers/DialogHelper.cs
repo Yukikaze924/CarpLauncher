@@ -25,5 +25,20 @@ namespace CarpLauncher.Helpers
 
             return result;
         }
+
+        public static async Task<ContentDialog> GetProgressDialog(string title, string closeBtnText="Close")
+        {
+            ContentDialog dialog = new ContentDialog();
+
+            dialog.XamlRoot = App.MainWindow.Content.XamlRoot;
+            dialog.Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
+            dialog.Title = title;
+            dialog.IsPrimaryButtonEnabled = false;
+            dialog.CloseButtonText = closeBtnText;
+            dialog.Content = new Controls.ProgressDialog();
+            dialog.RequestedTheme = App.GetService<IThemeSelectorService>().Theme;
+
+            return dialog;
+        }
     }
 }

@@ -8,6 +8,24 @@
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <CommandBarFlyout Placement="BottomEdgeAlignedRight"
+                          x:Name="CommandBarFlyout1">
+            <AppBarButton Label="Choose"
+                          Icon="{ui:FontIcon Glyph=&#xE815;}"
+                          Click="Context_Click"/>
+            <AppBarButton Label="Edit"
+                          Icon="Edit"
+                          Click="Context_Click"/>
+            <CommandBarFlyout.SecondaryCommands>
+                <AppBarButton Label="Delete"
+                              Icon="Delete"
+                              Click="Context_Click"/>
+            </CommandBarFlyout.SecondaryCommands>
+        </CommandBarFlyout>
+    </Page.Resources>
+
+
     <Grid x:Name="ContentArea"
           Margin="{StaticResource NavigationViewPageContentMargin}">
         <Grid.RowDefinitions>
@@ -35,7 +53,7 @@
             </StackPanel>
         </StackPanel>
         
-
+        <!--#region View Switch-->
         <controls:Segmented x:Name="Segmented"
                             Grid.Row="1"
                             SelectedIndex="0"
@@ -52,22 +70,20 @@
             <controls:SegmentedItem Content="Fabric"
                                     Icon="{ui:BitmapIcon Source=/Assets/FabricIcon.png}" />
         </controls:Segmented>
+        <!--#endregion-->
 
+        <!--#region Games -->
         <ScrollViewer Name="GamePanel"
                       Grid.Row="2">
             <StackPanel>
                 <CommandBar Margin="0 0 0 20"
                             DefaultLabelPosition="Right">
-                    <AppBarButton Icon="Add" Label="Add" Click="AppBarButton_Click"/>
-                    <AppBarButton Icon="MoveToFolder" Label="Import"/>
+                    <AppBarButton Icon="Add" Label="Add" Click="AddButton_Click"/>
+                    <AppBarButton Icon="MoveToFolder" Label="Import" Command="{x:Bind ViewModel.ImportGameFromFolderCommand}"/>
                     <AppBarButton Icon="Refresh" Label="Refresh" Command="{x:Bind ViewModel.RefreshProfilesCommand}"/>
                     <CommandBar.SecondaryCommands>
                         <AppBarButton Icon="NewWindow" Label="Open Folder" Command="{x:Bind ViewModel.OpenGameFolderCommand}"/>
-                        <AppBarButton Icon="Setting" Label="Settings" Command="{x:Bind ViewModel.GotoSettingsCommand}">
-                            <AppBarButton.KeyboardAccelerators>
-                                <KeyboardAccelerator Modifiers="Control" Key="I" />
-                            </AppBarButton.KeyboardAccelerators>
-                        </AppBarButton>
+                        <AppBarButton Icon="Setting" Label="Settings" Command="{x:Bind ViewModel.GotoSettingsCommand}"/>
                     </CommandBar.SecondaryCommands>
                 </CommandBar>
                 <ItemsControl ItemsSource="{x:Bind ViewModel.Profiles, Mode=TwoWay}">
@@ -75,17 +91,20 @@
                         <DataTemplate>
                             <controls:SettingsCard Header="{Binding Id}"
                                                    HeaderIcon="{ui:BitmapIcon Source=/Assets/Grass.png}"
-                                                   Description="{Binding DirName}"
-                                                   Margin="0 0 0 8">
-                                <Button Content="Launch"
-                                        Style="{ThemeResource AccentButtonStyle}"
-                                        Click="Button_Click"/>
-                            </controls:SettingsCard>
+                                                   Description="{Binding AssetInfo.Id}"
+                                                   IsClickEnabled="True"
+                                                   Click="SettingsCard_Click"
+                                                   ContextRequested="SettingsCard_ContextRequested"
+                                                   Margin="0 0 0 8"
+                                                   />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
         </ScrollViewer>
+        <!--#endregion-->
+        
+        <!--#region Vanilla-->
         <StackPanel Name="MinecraftPanel"
                     Grid.Row="2"
                     Spacing="15"
@@ -94,14 +113,17 @@
                                    HeaderIcon="{ui:BitmapIcon Source=/Assets/VersionIcon.png}"
                                    Description="Choose a minecraft version">
                 <ComboBox ItemsSource="{x:Bind ViewModel.MinecraftVersionList}"
-                          SelectedItem="{x:Bind ViewModel.SelectedMinecraftVersion, Mode=TwoWay}"/>
+                          SelectedItem="{x:Bind ViewModel.SelectedMinecraftVersion, Mode=TwoWay}"
+                          Width="150"/>
             </controls:SettingsCard>
             <Button Content="Download"
                     Command="{x:Bind ViewModel.DownloadVanillaMinecraftCommand}"
                     Style="{ThemeResource AccentButtonStyle}"
+                    IsEnabled="{x:Bind ViewModel.IsMinecraftReadyToDownload, Mode=TwoWay}"
                     Margin="0 40"
                     HorizontalAlignment="Stretch"/>
         </StackPanel>
+        <!--#endregion-->
         <StackPanel Name="ForgePanel"
                     Grid.Row="2"
                     Spacing="15"
@@ -133,6 +155,18 @@
                     Spacing="15"
                     Visibility="Collapsed">
 
+            <controls:SettingsCard Header="Version"
+                                   HeaderIcon="{ui:BitmapIcon Source=/Assets/VersionIcon.png}"
+                                   Description="Choose a minecraft version for Forge">
+                <ComboBox ItemsSource="{x:Bind ViewModel.MinecraftVersionList}"
+                          SelectedItem="{x:Bind ViewModel.SelectedFabricVersion, Mode=TwoWay}"/>
+            </controls:SettingsCard>
+            <Button Content="Download"
+                    Command="{x:Bind ViewModel.DownloadFabricMinecraftCommand}"
+                    Style="{ThemeResource AccentButtonStyle}"
+                    Margin="0 40"
+                    HorizontalAlignment="Stretch"
+                    />
         </StackPanel>
 
     </Grid>

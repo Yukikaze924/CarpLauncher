@@ -1,16 +1,17 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Net;
-using CarpLauncher.Contracts.Services;
+﻿using CarpLauncher.Contracts.Services;
+using CarpLauncher.Core;
+using CarpLauncher.Core.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using Newtonsoft.Json.Linq;
-using ProjBobcat.Class.Helper;
 using ProjBobcat.Class.Model;
 using ProjBobcat.Class.Model.LauncherProfile;
 using ProjBobcat.DefaultComponent.Launch.GameCore;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Net;
+using Windows.Storage;
+using Windows.Storage.Pickers;
 
 namespace CarpLauncher.ViewModels;
 
@@ -20,66 +21,15 @@ public partial class GameViewModel : ObservableObject
     private readonly DefaultGameCore core = Core.Core.GetGameCore();
 
     [ObservableProperty]
-    private List<string> _minecraftVersionList = new()
-    {
-        "1.7.10",
-        "1.7.11",
-        "1.7.12",
-        "1.8.0",
-        "1.8.1",
-        "1.8.2",
-        "1.8.3",
-        "1.8.4",
-        "1.8.5",
-        "1.8.6",
-        "1.8.7",
-        "1.8.8",
-        "1.8.9",
-        "1.9.0",
-        "1.9.1",
-        "1.9.2",
-        "1.9.3",
-        "1.9.4",
-        "1.10.0",
-        "1.10.1",
-        "1.10.2",
-        "1.11.0",
-        "1.11.1",
-        "1.11.2",
-        "1.12.0",
-        "1.12.1",
-        "1.12.2",
-        "1.13.0",
-        "1.13.1",
-        "1.13.2",
-        "1.14.0",
-        "1.14.1",
-        "1.14.2",
-        "1.14.3",
-        "1.14.4",
-        "1.15.0",
-        "1.15.1",
-        "1.15.2",
-        "1.16.0",
-        "1.16.1",
-        "1.16.2",
-        "1.16.3",
-        "1.16.4",
-        "1.16.5",
-        "1.17.0",
-        "1.17.1",
-        "1.18.0",
-        "1.18.1",
-        "1.18.2"
-    };
+    private List<string> _minecraftVersionList = Core.Core.VersionManifest;
     [ObservableProperty]
-    private string _selectedMinecraftVersion;
+    private string? _selectedMinecraftVersion;
     [ObservableProperty]
-    private string _selectedForgeMinecraftVersion;
+    private string? _selectedForgeMinecraftVersion;
     [ObservableProperty]
-    private ObservableCollection<string> _forgeVersionList = [];
+    private ObservableCollection<string>? _forgeVersionList = [];
     [ObservableProperty]
-    private string _selectedForgeVersion;
+    private string? _selectedForgeVersion;
     [ObservableProperty]
     private bool _isFailed = false;
     partial void OnSelectedForgeMinecraftVersionChanged(string value)
@@ -87,7 +37,7 @@ public partial class GameViewModel : ObservableObject
         if (value is null) return;
 
         IsFailed = false;
-        ForgeVersionList.Clear();
+        ForgeVersionList!.Clear();
 
         try
         {
@@ -122,8 +72,8 @@ public partial class GameViewModel : ObservableObject
             return;
         }
     }
-
-
+    [ObservableProperty]
+    private string? _selectedFabricVersion;
     [ObservableProperty]
     private ObservableCollection<VersionInfo>? _profiles;
     [ObservableProperty]
@@ -133,13 +83,59 @@ public partial class GameViewModel : ObservableObject
         if (value is null) return;
         ProfilesCountText = $"Games ({value.Count})";
     }
-    public void _refreshProfiles() => Profiles = new ObservableCollection<VersionInfo>(Core.Core.GetGameCore().VersionLocator.GetAllGames());
+    [ObservableProperty]
+    private bool _isMinecraftReadyToDownload;
+    partial void OnSelectedMinecraftVersionChanged(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) IsMinecraftReadyToDownload = false;
+        else IsMinecraftReadyToDownload = true;
+    }
+
+
+    public void _refreshProfiles() => Profiles = GameHelper.GetAllGames(Profiles);
     [RelayCommand]
     private void RefreshProfiles() => _refreshProfiles();
     [RelayCommand]
-    private void OpenGameFolder() => Process.Start(new ProcessStartInfo {FileName = core.RootPath,UseShellExecute = true,Verb = "open"});
+    private void OpenGameFolder() => Process.Start(new ProcessStartInfo { FileName = core.RootPath, UseShellExecute = true, Verb = "open" });
     [RelayCommand]
     private void GotoSettings() => _navigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
+    [RelayCommand]
+    private async Task ImportGameFromFolderAsync()
+    {
+        // Create a folder picker
+        var openPicker = new FolderPicker();
+        // See the sample code below for how to make the window accessible from the App class.
+        var window = App.MainWindow;
+        // Retrieve the window handle (HWND) of the current WinUI 3 window.
+        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+        // Initialize the folder picker with the window handle (HWND).
+        WinRT.Interop.InitializeWithWindow.Initialize(openPicker, hWnd);
+        // Set options for your folder picker
+        openPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+        openPicker.FileTypeFilter.Add("*");
+        // Open the picker for the user to pick a folder
+        StorageFolder folder = await openPicker.PickSingleFolderAsync();
+        if (folder != null)
+        {
+            try
+            {
+                IOHelper.CopyDirectory(folder.Path, $@"{core.RootPath}\versions\{folder.Name}");
+            }
+            catch
+            {
+                return;
+            }
+            core.VersionLocator.LauncherProfileParser?.AddNewGameProfile(new GameProfileModel
+            {
+                Name = folder.Name,
+                GameDir = $@"{core.RootPath}\versions\{folder.Name}",
+            });
+        }
+        else
+        {
+            return;
+        }
+    }
 
 
     public GameViewModel(INavigationService navigationService)
@@ -154,52 +150,11 @@ public partial class GameViewModel : ObservableObject
     [RelayCommand]
     private async Task DownloadVanillaMinecraftAsync()
     {
-        if (core.VersionLocator.GetGame(SelectedMinecraftVersion) == null)
-        {
-            // part 1
-            string apiUrl = "https://bmclapi2.bangbang93.com/version/" + SelectedMinecraftVersion;
-            string path = core.RootPath + "\\versions\\" + SelectedMinecraftVersion;
-            core.VersionLocator.LauncherProfileParser?.AddNewGameProfile(new GameProfileModel
-            {
-                Name = SelectedMinecraftVersion,
-                GameDir = path,
-            });
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(path + "\\" + SelectedMinecraftVersion + ".jar"));
-                var jarResponse = await HttpHelper.Get(apiUrl + "/client");
-                byte[] jarContent = await jarResponse.Content.ReadAsByteArrayAsync();
-                File.WriteAllBytes(path + "\\" + SelectedMinecraftVersion + ".jar", jarContent);
-
-                Directory.CreateDirectory(Path.GetDirectoryName(path + "\\" + SelectedMinecraftVersion + ".json"));
-                var jsonResponse = await HttpHelper.Get(apiUrl + "/json");
-                string jsonContent = await jsonResponse.Content.ReadAsStringAsync();
-                File.WriteAllText(path + "\\" + SelectedMinecraftVersion + ".json", jsonContent);
-            }
-            catch
-            {
-                return;
-            }
-
-            // part 2
-            VersionInfo? McVersionInfo = core.VersionLocator.GetGame(SelectedMinecraftVersion);
-            try
-            {
-                bool result = await Core.ResourceCompleter.DownloadResourcesAsync(McVersionInfo);
-                if (result == false)
-                {
-                    throw new Exception();
-                }
-            }
-            catch
-            {
-                Directory.Delete(path, true);
-                return;
-            }
-        }
-        else
-        {
-            return;
-        }
+        await DownloadManager.DownloadMinecraftVanillaAsync(SelectedMinecraftVersion);
+    }
+    [RelayCommand]
+    private async Task DownloadFabricMinecraftAsync()
+    {
+        await DownloadManager.DownloadMinecraftFabricAsync(SelectedFabricVersion);
     }
 }

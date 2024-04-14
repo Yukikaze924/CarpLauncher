@@ -73,7 +73,7 @@ public partial class App : Application
 
             // Views and ViewModels
             services.AddSingleton<GameViewModel>();
-            services.AddTransient<GamePage>();
+            services.AddSingleton<GamePage>();
             //
             services.AddSingleton<SettingsViewModel>();
             services.AddTransient<SettingsPage>();
@@ -111,7 +111,7 @@ public partial class App : Application
 
     public DispatcherQueue DispatcherQueue { get; } = DispatcherQueue.GetForCurrentThread();
 
-    private FileSystemWatcher watcher = new();
+    public FileSystemWatcher watcher = new();
 
     private async Task InitServicesAsync()
     {
@@ -135,7 +135,7 @@ public partial class App : Application
             await _localSettingsService.SaveSettingAsync("BackgroundImageUrl", "/");
         }
 
-        Core.Core.InitLaunchCore(await _localSettingsService.ReadSettingAsync<string>("GameRootPath"));
+        await Core.Core.InitLaunchCore(await _localSettingsService.ReadSettingAsync<string>("GameRootPath") ?? ".minecraft");
     }
 
     private void InitFileSystemWatcher()

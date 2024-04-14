@@ -122,7 +122,6 @@ public partial class SettingsViewModel : ObservableRecipient
         {
             return;
         }
-
     }
 
 
