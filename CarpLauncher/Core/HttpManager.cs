@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
-using System;
+using System.Net;
 
 namespace CarpLauncher.Core
 {
@@ -28,9 +28,9 @@ namespace CarpLauncher.Core
                         && !id.Contains("3D")
                         && !id.Contains("Pre")
                         )
-                        {
-                            list.Add(id);
-                        }
+                    {
+                        list.Add(id);
+                    }
                 }
 
                 return list;
@@ -56,6 +56,36 @@ namespace CarpLauncher.Core
             JObject data = JObject.Parse(json);
 
             return data["id"].ToString();
+        }
+
+        public static async Task<bool> DownloadAsync(string urlString, string savePath, string fileName, Action<int> action)
+        {
+            using (var client = new WebClient())
+            {
+                client.DownloadProgressChanged += (sender, e) =>
+                {
+                    // 报告下载进度
+                    try
+                    {
+                        action.Invoke(e.ProgressPercentage);
+                    }
+                    catch
+                    {
+                        return;
+                    }
+                };
+
+                try
+                {
+                    await client.DownloadFileTaskAsync(new Uri(urlString), Path.Combine(savePath, fileName));
+                }
+                catch
+                {
+                    return false;
+                }
+
+                return true;
+            }
         }
     }
 }

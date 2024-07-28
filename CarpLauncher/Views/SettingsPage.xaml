@@ -14,26 +14,26 @@
 		<StackPanel Spacing="8"
                     Margin="0 0 0 30">
 
-			<StackPanel Orientation="Horizontal">
-				<Image Source="/Assets/Icons/SettingIcon.png"
+            <StackPanel Orientation="Horizontal">
+                <Image Source="/Assets/Icons/SettingIcon.png"
                        Height="78"/>
 
-				<StackPanel Spacing="2"
+                <StackPanel Spacing="2"
                             Margin="12 0">
-					<TextBlock Text="Settings"
+                    <TextBlock Text="Settings"
                                Style="{StaticResource TitleTextBlockStyle}"/>
 
-					<TextBlock Text="Powered by Carp.org"
+                    <TextBlock Text="Powered by Carp.org"
                                Foreground="{ThemeResource AccentTextFillColorTertiaryBrush}"
                                Style="{StaticResource CaptionTextBlockStyle}"/>
 
-					<TextBlock Text="Adjusting application preferences"
+                    <TextBlock Text="Adjusting application preferences"
                                Style="{StaticResource CaptionTextBlockStyle}"/>
-				</StackPanel>
-			</StackPanel>
+                </StackPanel>
+            </StackPanel>
 
-            
-			<TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
                        Text="General"
                        Margin="0 8 0 0"/>
             <controls:SettingsCard Description="Another card to show grouping of cards"

@@ -1,13 +1,13 @@
 ﻿using CarpLauncher.Contracts.Services;
+using CarpLauncher.Core;
+using CarpLauncher.Helpers;
 using CarpLauncher.ViewModels;
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using ProjBobcat.Class.Model;
-using static System.Net.Mime.MediaTypeNames;
+using ProjBobcat.Class.Model.LauncherProfile;
 
 namespace CarpLauncher.Views;
 
@@ -58,36 +58,59 @@ public sealed partial class GamePage : Page
     }
 
 
-    private Control currentItem;
-
     private void SettingsCard_Click(object sender, RoutedEventArgs e)
     {
         if (e.OriginalSource is SettingsCard card && card.DataContext is VersionInfo version)
         {
-            var id = version.Id;
-            App.GetService<HomeViewModel>().CurrentSelectedVersion = id;
+            var name = version.Name;
+            App.GetService<HomeViewModel>().CurrentSelectedVersion = name;
             App.GetService<INavigationService>().NavigateTo(typeof(HomeViewModel).FullName!);
         }
     }
+
     private void Context_Click(object sender, RoutedEventArgs e)
     {
         if (e.OriginalSource is AppBarButton button)
         {
-            var version = (VersionInfo)currentItem.DataContext;
+            var version = (VersionInfo)currentItem!.DataContext;
             var label = button.Label;
             switch (label)
             {
                 case "Choose":
-                    App.GetService<HomeViewModel>().CurrentSelectedVersion = version.Id;
-                    App.GetService<INavigationService>().NavigateTo(typeof(HomeViewModel).FullName!);
-                    break;
+                    {
+                        App.GetService<HomeViewModel>().CurrentSelectedVersion = version.Name;
+                        App.GetService<INavigationService>().NavigateTo(typeof(HomeViewModel).FullName!);
+                        break;
+                    }
+
+                case "Edit":
+                    {
+
+                        break;
+                    }
+
                 case "Delete":
-                    Directory.Delete($@"{Core.Core.GetGameCore().RootPath}\versions\{version.Id}", true);
+                    try
+                    {
+                        App.TaskInvoker(() =>
+                        {
+                            Directory.Delete($@"{Core.Core.GetGameCore().RootPath}\versions\{version.Name}", true);
+                            GameHelper.RemoveGameProfile(version.Name);
+                        });
+                        App.GetService<GameViewModel>().FetchProfiles();
+                    }
+                    catch
+                    {
+                        _ = DialogHelper.ShowRegularContentDialogAsync("Error", "Unable to delete this profile!");
+                        return;
+                    }
                     break;
             }
 
         }
     }
+
+    private Control? currentItem;
 
     private void SettingsCard_ContextRequested(UIElement sender, Microsoft.UI.Xaml.Input.ContextRequestedEventArgs args)
     {

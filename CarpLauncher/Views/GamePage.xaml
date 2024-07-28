@@ -10,18 +10,17 @@
 
     <Page.Resources>
         <CommandBarFlyout Placement="BottomEdgeAlignedRight"
-                          x:Name="CommandBarFlyout1">
+                          x:Name="CommandBarFlyout1"
+                          >
             <AppBarButton Label="Choose"
                           Icon="{ui:FontIcon Glyph=&#xE815;}"
                           Click="Context_Click"/>
             <AppBarButton Label="Edit"
                           Icon="Edit"
                           Click="Context_Click"/>
-            <CommandBarFlyout.SecondaryCommands>
-                <AppBarButton Label="Delete"
-                              Icon="Delete"
-                              Click="Context_Click"/>
-            </CommandBarFlyout.SecondaryCommands>
+            <AppBarButton Label="Delete"
+                          Icon="Delete"
+                          Click="Context_Click"/>
         </CommandBarFlyout>
     </Page.Resources>
 
@@ -33,6 +32,7 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
 
         <StackPanel Orientation="Horizontal"
                     Grid.Row="0">
@@ -60,7 +60,7 @@
                             SelectionMode="Single"
                             SelectionChanged="OnSelectionChanged"
                             HorizontalAlignment="Stretch"
-                            Margin="15 40">
+                            Margin="0 40">
             <controls:SegmentedItem Content="{x:Bind ViewModel.ProfilesCountText, Mode=TwoWay}"
                                     Icon="{ui:SymbolIcon Symbol=Download}"/>
             <controls:SegmentedItem Content="Minecraft"
@@ -86,12 +86,13 @@
                         <AppBarButton Icon="Setting" Label="Settings" Command="{x:Bind ViewModel.GotoSettingsCommand}"/>
                     </CommandBar.SecondaryCommands>
                 </CommandBar>
-                <ItemsControl ItemsSource="{x:Bind ViewModel.Profiles, Mode=TwoWay}">
+                <ItemsControl ItemsSource="{x:Bind ViewModel.Profiles, Mode=TwoWay}"
+                              Margin="0 0 0 20">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <controls:SettingsCard Header="{Binding Id}"
+                            <controls:SettingsCard Header="{Binding Name}"
                                                    HeaderIcon="{ui:BitmapIcon Source=/Assets/Grass.png}"
-                                                   Description="{Binding AssetInfo.Id}"
+                                                   Description="{Binding Id}"
                                                    IsClickEnabled="True"
                                                    Click="SettingsCard_Click"
                                                    ContextRequested="SettingsCard_ContextRequested"
@@ -105,69 +106,138 @@
         <!--#endregion-->
         
         <!--#region Vanilla-->
-        <StackPanel Name="MinecraftPanel"
-                    Grid.Row="2"
-                    Spacing="15"
-                    Visibility="Collapsed">
-            <controls:SettingsCard Header="Version"
-                                   HeaderIcon="{ui:BitmapIcon Source=/Assets/VersionIcon.png}"
-                                   Description="Choose a minecraft version">
-                <ComboBox ItemsSource="{x:Bind ViewModel.MinecraftVersionList}"
-                          SelectedItem="{x:Bind ViewModel.SelectedMinecraftVersion, Mode=TwoWay}"
-                          Width="150"/>
-            </controls:SettingsCard>
+        <Grid Name="MinecraftPanel"
+              Grid.Row="2"
+              Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition MinHeight="150"/>
+            </Grid.RowDefinitions>
+
+            <ScrollViewer Grid.Row="0">
+                <StackPanel Spacing="15">
+                    <controls:SettingsCard Header="Name"
+                                           HeaderIcon="{ui:BitmapIcon Source=/Assets/NameTagIcon.png}"
+                                           Description="Customize Game Profile's name">
+                        <controls:SettingsCard.Content>
+                            <TextBox Width="200"
+                                     PlaceholderText="Name"
+                                     Text="{x:Bind ViewModel.MinecraftVersionName, Mode=TwoWay}"/>
+                        </controls:SettingsCard.Content>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Version"
+                                           HeaderIcon="{ui:BitmapIcon Source=/Assets/VersionIcon.png}"
+                                           Description="Choose a Minecraft version">
+                        <ComboBox ItemsSource="{x:Bind ViewModel.MinecraftVersionList}"
+                                  SelectedItem="{x:Bind ViewModel.SelectedMinecraftVersion, Mode=TwoWay}"
+                                  Width="200"/>
+                    </controls:SettingsCard>
+                </StackPanel>
+            </ScrollViewer>
+
             <Button Content="Download"
                     Command="{x:Bind ViewModel.DownloadVanillaMinecraftCommand}"
                     Style="{ThemeResource AccentButtonStyle}"
-                    IsEnabled="{x:Bind ViewModel.IsMinecraftReadyToDownload, Mode=TwoWay}"
                     Margin="0 40"
-                    HorizontalAlignment="Stretch"/>
-        </StackPanel>
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Bottom"
+                    Grid.Row="1"/>
+        </Grid>
         <!--#endregion-->
-        <StackPanel Name="ForgePanel"
-                    Grid.Row="2"
-                    Spacing="15"
-                    Visibility="Collapsed">
-            <controls:SettingsCard Header="Version"
-                                   HeaderIcon="{ui:BitmapIcon Source=/Assets/VersionIcon.png}"
-                                   Description="Choose a minecraft version for Forge">
-                <ComboBox ItemsSource="{x:Bind ViewModel.MinecraftVersionList}"
-                          SelectedItem="{x:Bind ViewModel.SelectedForgeMinecraftVersion, Mode=TwoWay}"/>
-            </controls:SettingsCard>
-            <controls:SettingsCard Header="Forge"
-                                   HeaderIcon="{ui:BitmapIcon Source=/Assets/ForgeIcon.png}"
-                                   Description="Choose a Forge Mod Loader API version">
-                <ComboBox ItemsSource="{x:Bind ViewModel.ForgeVersionList}"
-                          SelectedItem="{x:Bind ViewModel.SelectedForgeVersion, Mode=TwoWay}"/>
-            </controls:SettingsCard>
-            <InfoBar IsOpen="{x:Bind ViewModel.IsFailed, Mode=TwoWay}"
-                     Severity="Error"
-                     Title="Error"
-                     Message="Failed to fetch data from Forge"
-                     />
+        
+        <!--#region Forge-->
+        <Grid Name="ForgePanel"
+              Grid.Row="2"
+              Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition MinHeight="150"/>
+            </Grid.RowDefinitions>
+
+            <ScrollViewer Grid.Row="0">
+                <StackPanel Spacing="15">
+                    <controls:SettingsCard Header="Name"
+                                           HeaderIcon="{ui:BitmapIcon Source=/Assets/NameTagIcon.png}"
+                                           Description="Customize Game Profile's name">
+                        <controls:SettingsCard.Content>
+                            <TextBox Width="200"
+                                     Text="{x:Bind ViewModel.ForgeVersionName,
+                                                   Mode=TwoWay,
+                                                   UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="Name"/>
+                        </controls:SettingsCard.Content>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Version"
+                                           HeaderIcon="{ui:BitmapIcon Source=/Assets/VersionIcon.png}"
+                                           Description="Choose a Minecraft version for Forge">
+                        <ComboBox ItemsSource="{x:Bind ViewModel.MinecraftVersionList}"
+                                  SelectedItem="{x:Bind ViewModel.SelectedForgeMinecraftVersion, Mode=TwoWay}"
+                                  Width="200"/>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Forge"
+                                           HeaderIcon="{ui:BitmapIcon Source=/Assets/ForgeIcon.png}"
+                                           Description="Choose a Forge-Mod-Loader API version">
+                        <ComboBox ItemsSource="{x:Bind ViewModel.ForgeVersionList}"
+                                  SelectedItem="{x:Bind ViewModel.SelectedForgeVersion, Mode=TwoWay}"
+                                  Width="200"
+                                  IsEnabled="{x:Bind ViewModel.IsForgeListEnable, Mode=TwoWay}"
+                                  />
+                    </controls:SettingsCard>
+                    <InfoBar IsOpen="{x:Bind ViewModel.IsFailed, Mode=TwoWay}"
+                             Severity="Error"
+                             Title="Error"
+                             Message="Failed to fetch data from Forge"
+                             />
+                </StackPanel>
+            </ScrollViewer>
+            
             <Button Content="Download"
+                    Command="{x:Bind ViewModel.DownloadForgeMinecraftCommand}"
                     Style="{ThemeResource AccentButtonStyle}"
                     Margin="0 40"
-                    HorizontalAlignment="Stretch"/>
-        </StackPanel>
-        <StackPanel Name="FabricPanel"
-                    Grid.Row="2"
-                    Spacing="15"
-                    Visibility="Collapsed">
+                    HorizontalAlignment="Stretch"
+                    Grid.Row="1" VerticalAlignment="Bottom"/>
+        </Grid>
+        <!--#endregion-->
+        
+        <!--#region Fabric-->
+        <Grid Name="FabricPanel"
+              Grid.Row="2"
+              Visibility="Collapsed">
 
-            <controls:SettingsCard Header="Version"
-                                   HeaderIcon="{ui:BitmapIcon Source=/Assets/VersionIcon.png}"
-                                   Description="Choose a minecraft version for Forge">
-                <ComboBox ItemsSource="{x:Bind ViewModel.MinecraftVersionList}"
-                          SelectedItem="{x:Bind ViewModel.SelectedFabricVersion, Mode=TwoWay}"/>
-            </controls:SettingsCard>
+            <ScrollViewer Grid.Row="0">
+                <StackPanel Spacing="15">
+                    <controls:SettingsCard Header="Name"
+                                           HeaderIcon="{ui:BitmapIcon Source=/Assets/NameTagIcon.png}"
+                                           Description="Customize Game Profile's name">
+                        <controls:SettingsCard.Content>
+                            <TextBox Width="200"
+                             Text="{x:Bind ViewModel.FabricVersionName,
+                                           Mode=TwoWay,
+                                           UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="Name"/>
+                        </controls:SettingsCard.Content>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Version"
+                                           HeaderIcon="{ui:BitmapIcon Source=/Assets/VersionIcon.png}"
+                                           Description="Choose a Minecraft version for Forge">
+                        <ComboBox ItemsSource="{x:Bind ViewModel.MinecraftVersionList}"
+                                  SelectedItem="{x:Bind ViewModel.SelectedFabricMinecraftVersion, Mode=TwoWay}"
+                                  Width="200"/>
+                    </controls:SettingsCard>
+                </StackPanel>
+            </ScrollViewer>
+
             <Button Content="Download"
                     Command="{x:Bind ViewModel.DownloadFabricMinecraftCommand}"
                     Style="{ThemeResource AccentButtonStyle}"
                     Margin="0 40"
                     HorizontalAlignment="Stretch"
+                    VerticalAlignment="Bottom"
+                    Grid.Row="1"
                     />
-        </StackPanel>
+        </Grid>
+        <!--#endregion-->
 
     </Grid>
 </Page>

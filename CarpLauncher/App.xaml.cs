@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using System.Net;
 
 namespace CarpLauncher;
 
@@ -104,14 +105,14 @@ public partial class App : Application
 
         await GetService<IActivationService>().ActivateAsync(args);
 
-        await InitServicesAsync();
+        ServicePointManager.DefaultConnectionLimit = 512;
 
+        await InitServicesAsync();
         InitFileSystemWatcher();
+        //GetService<GameViewModel>().Profiles = Core.GameHelper.GetAllGames([]);
     }
 
     public DispatcherQueue DispatcherQueue { get; } = DispatcherQueue.GetForCurrentThread();
-
-    public FileSystemWatcher watcher = new();
 
     private async Task InitServicesAsync()
     {
@@ -138,6 +139,8 @@ public partial class App : Application
         await Core.Core.InitLaunchCore(await _localSettingsService.ReadSettingAsync<string>("GameRootPath") ?? ".minecraft");
     }
 
+    public static FileSystemWatcher watcher = new();
+
     private void InitFileSystemWatcher()
     {
         watcher.Path = Core.Core.GetGameCore().RootPath + "\\versions";
@@ -150,7 +153,7 @@ public partial class App : Application
             {
                 try
                 {
-                    GetService<GameViewModel>()._refreshProfiles();
+                    GetService<GameViewModel>().FetchProfiles();
                 }
                 catch { return; }
             });
@@ -162,11 +165,23 @@ public partial class App : Application
             {
                 try
                 {
-                    GetService<GameViewModel>()._refreshProfiles();
+                    GetService<GameViewModel>().FetchProfiles();
                 }
                 catch { return; }
             });
         };
+        watcher.EnableRaisingEvents = true;
+    }
+
+    public static void TaskInvoker(Action task)
+    {
+        watcher.EnableRaisingEvents = false;
+
+        if (!watcher.EnableRaisingEvents)
+        {
+            task.Invoke();
+        }
+
         watcher.EnableRaisingEvents = true;
     }
 }

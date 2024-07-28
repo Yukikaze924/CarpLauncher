@@ -1,4 +1,5 @@
-﻿using CarpLauncher.Helpers;
+﻿using CarpLauncher.Contracts.Services;
+using CarpLauncher.Helpers;
 using Microsoft.UI.Xaml.Controls;
 using Newtonsoft.Json;
 using ProjBobcat.Class.Helper;
@@ -11,7 +12,6 @@ namespace CarpLauncher.Core;
 public class Core
 {
     private static DefaultGameCore core = null!;
-    public static List<string> VersionManifest { get; set; } = null!;
 
     public static async Task InitLaunchCore(string path)
     {
@@ -34,11 +34,10 @@ public class Core
         }
         catch (Exception)
         {
-            var result = await DialogHelper.ShowRegularContentDialogAsync
-            ("Error", "Invalid launcher_profiles.json detected!\nDo you want to remove it?", "Yes");
-            if (result == ContentDialogResult.Primary)
+            try
             {
                 File.Delete($@"{rootPath}\launcher_profiles.json");
+
                 core = new DefaultGameCore
                 {
                     ClientToken = clientToken,
@@ -51,12 +50,30 @@ public class Core
                     GameLogResolver = new DefaultGameLogResolver()
                 };
             }
+            catch
+            {
+                var defaultPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\.minecraft";
+                await DialogHelper.ShowRegularContentDialogAsync("Error", "Invalid .minecraft path detected!");
+                await App.GetService<ILocalSettingsService>().SaveSettingAsync("GameRootPath", defaultPath);
+                core = new DefaultGameCore
+                {
+                    ClientToken = clientToken,
+                    RootPath = defaultPath,
+                    VersionLocator = new DefaultVersionLocator(defaultPath, clientToken)
+                    {
+                        LauncherProfileParser = new DefaultLauncherProfileParser(defaultPath, clientToken),
+                        LauncherAccountParser = new DefaultLauncherAccountParser(defaultPath, clientToken)
+                    },
+                    GameLogResolver = new DefaultGameLogResolver()
+                };              
+            }
         }
 
         VersionManifest = await HttpManager.GetVersionManifest() ?? GameHelper.GetDefaultVersionManifest();
 
         GameHelper.Initialize(core);
         DownloadManager.Initialize(core);
+        ForgeInstaller.Initialize(core);
         FabricInstaller.Initialize(core);
     }
 
@@ -65,6 +82,8 @@ public class Core
         return core;
     }
 
+    public static List<string> VersionManifest { get; set; } = null!;
+
     public static async Task<VersionManifest> GetVersionManifestTaskAsync()
     {
         const string vmUrl = "http://launchermeta.mojang.com/mc/game/version_manifest.json";
@@ -72,6 +91,6 @@ public class Core
         var content = await contentRes.Content.ReadAsStringAsync();
         var model = JsonConvert.DeserializeObject<VersionManifest>(content);
 
-        return model;
+        return model!;
     }
 }

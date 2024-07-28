@@ -1,5 +1,4 @@
 ﻿using CarpLauncher.Contracts.Services;
-using CarpLauncher.Core;
 using CarpLauncher.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -46,10 +45,6 @@ public partial class HomeViewModel : ObservableRecipient
         try
         {
             selectedGame = core.VersionLocator.GetGame(CurrentSelectedVersion);
-            if (selectedGame is null)
-            {
-                throw new InvalidDataException();
-            }
         }
         catch
         {
@@ -66,25 +61,26 @@ public partial class HomeViewModel : ObservableRecipient
 
             var launchSettings = new LaunchSettings
             {
-                Version = selectedGame.Id, // 需要启动的游戏ID
+                Version = selectedGame.Name, // 需要启动的游戏ID
                 VersionInsulation = isVersionIsolate, // 版本隔离
                 GameResourcePath = core.RootPath, // 资源根目录
-                GamePath = (isVersionIsolate) ? core.RootPath + GamePathHelper.GetGamePath(selectedGame.Id) : core.RootPath, // 游戏根目录，如果有版本隔离则应该改为GamePathHelper.GetGamePath(Core.RootPath, versionId)
+                GamePath = (isVersionIsolate) ? core.RootPath + GamePathHelper.GetGamePath(selectedGame.Name) : core.RootPath, // 游戏根目录，如果有版本隔离则应该改为GamePathHelper.GetGamePath(Core.RootPath, versionId)
                 VersionLocator = core.VersionLocator, // 游戏定位器
                 GameName = selectedGame.Name,
+                WindowTitle = selectedGame.Name,
                 GameArguments = new GameArguments // （可选）具体游戏启动参数
                 {
                     AdvanceArguments = "", // GC类型
                     JavaExecutable = javaPath, // JAVA路径
                     Resolution = new ResolutionModel { Height = 480, Width = 854 }, // 游戏窗口分辨率
                     MinMemory = 1024, // 最小内存
-                    MaxMemory = 4096, // 最大内存
-                    GcType = GcType.G1Gc // GC类型
+                    MaxMemory = 6144, // 最大内存
+                    GcType = GcType.G1Gc, // GC类型
                 },
                 Authenticator = new OfflineAuthenticator //离线认证
                 {
-                    Username = "Offline User", //离线用户名
-                    LauncherAccountParser = core.VersionLocator.LauncherAccountParser
+                    Username = "Yukikaze", //离线用户名
+                    LauncherAccountParser = core.VersionLocator.LauncherAccountParser!,
                 }
             };
 

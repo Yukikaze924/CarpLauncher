@@ -23,13 +23,21 @@
         </Grid>
 
         <Grid Grid.Column="1"
-              MinWidth="300"
+              Width="300"
               Background="{ThemeResource LayerOnMicaBaseAltFillColorDefaultBrush}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                
+            </Grid>
             
-            <StackPanel VerticalAlignment="Bottom"
+            <StackPanel Grid.Row="1"
+                        VerticalAlignment="Bottom"
                         Padding="15 40"
                         Spacing="15">
-
                 <Button Command="{x:Bind ViewModel.LaunchMinecraftCommand}"
                         Height="76"
                         Width="210"
@@ -49,7 +57,6 @@
                         </StackPanel>
                     </Button.Content>
                 </Button>
-
                 <controls:WrapPanel Width="210"
                                     HorizontalSpacing="4"
                                     HorizontalAlignment="Center">
@@ -68,7 +75,7 @@
                             HorizontalAlignment="Right"/>
                 </controls:WrapPanel>
             </StackPanel>
+            
         </Grid>
-        
     </Grid>
 </Page>

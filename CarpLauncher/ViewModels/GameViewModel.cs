@@ -22,21 +22,45 @@ public partial class GameViewModel : ObservableObject
 
     [ObservableProperty]
     private List<string> _minecraftVersionList = Core.Core.VersionManifest;
+
     [ObservableProperty]
     private string? _selectedMinecraftVersion;
+
+    [ObservableProperty]
+    private string? _minecraftVersionName;
+    //[ObservableProperty]
+    //private bool _isMinecraftReadyToDownload;
+    //partial void OnSelectedMinecraftVersionChanged(string? value)
+    //{
+    //    if (string.IsNullOrWhiteSpace(value)) IsMinecraftReadyToDownload = false;
+    //    else IsMinecraftReadyToDownload = true;
+    //}
+
+
+    [ObservableProperty]
+    private string? _forgeVersionName;
+
     [ObservableProperty]
     private string? _selectedForgeMinecraftVersion;
+
     [ObservableProperty]
     private ObservableCollection<string>? _forgeVersionList = [];
+
     [ObservableProperty]
     private string? _selectedForgeVersion;
+
     [ObservableProperty]
     private bool _isFailed = false;
-    partial void OnSelectedForgeMinecraftVersionChanged(string value)
+
+    [ObservableProperty]
+    private bool _isForgeListEnable = true;
+
+    partial void OnSelectedForgeMinecraftVersionChanged(string? value)
     {
         if (value is null) return;
 
         IsFailed = false;
+        IsForgeListEnable = true;
         ForgeVersionList!.Clear();
 
         try
@@ -69,36 +93,42 @@ public partial class GameViewModel : ObservableObject
         catch
         {
             IsFailed = true;
+            IsForgeListEnable = false;
             return;
         }
     }
+
+
     [ObservableProperty]
-    private string? _selectedFabricVersion;
+    private string? _selectedFabricMinecraftVersion;
+
+    [ObservableProperty]
+    private string? _fabricVersionName;
+
+
     [ObservableProperty]
     private ObservableCollection<VersionInfo>? _profiles;
+
     [ObservableProperty]
-    private string? _profilesCountText;
+    private string? _profilesCountText = "Games (0)";
+
     partial void OnProfilesChanged(ObservableCollection<VersionInfo>? value)
     {
         if (value is null) return;
         ProfilesCountText = $"Games ({value.Count})";
     }
-    [ObservableProperty]
-    private bool _isMinecraftReadyToDownload;
-    partial void OnSelectedMinecraftVersionChanged(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value)) IsMinecraftReadyToDownload = false;
-        else IsMinecraftReadyToDownload = true;
-    }
 
+    public void FetchProfiles() => Profiles = GameHelper.GetAllGames(bParam_1: true);
 
-    public void _refreshProfiles() => Profiles = GameHelper.GetAllGames(Profiles);
     [RelayCommand]
-    private void RefreshProfiles() => _refreshProfiles();
+    private void RefreshProfiles() => this.FetchProfiles();
+
     [RelayCommand]
     private void OpenGameFolder() => Process.Start(new ProcessStartInfo { FileName = core.RootPath, UseShellExecute = true, Verb = "open" });
+
     [RelayCommand]
     private void GotoSettings() => _navigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
+
     [RelayCommand]
     private async Task ImportGameFromFolderAsync()
     {
@@ -140,21 +170,25 @@ public partial class GameViewModel : ObservableObject
 
     public GameViewModel(INavigationService navigationService)
     {
-        _refreshProfiles();
-
         _navigationService = navigationService;
     }
-
 
 
     [RelayCommand]
     private async Task DownloadVanillaMinecraftAsync()
     {
-        await DownloadManager.DownloadMinecraftVanillaAsync(SelectedMinecraftVersion);
+        await DownloadManager.DownloadMinecraftVanillaAsync(SelectedMinecraftVersion!, MinecraftVersionName!);
     }
+
     [RelayCommand]
     private async Task DownloadFabricMinecraftAsync()
     {
-        await DownloadManager.DownloadMinecraftFabricAsync(SelectedFabricVersion);
+        await DownloadManager.DownloadMinecraftFabricAsync(SelectedFabricMinecraftVersion!, FabricVersionName!);
+    }
+
+    [RelayCommand]
+    private async Task DownloadForgeMinecraftAsync()
+    {
+        await DownloadManager.DownloadMinecraftForgeAsync(SelectedForgeMinecraftVersion!, SelectedForgeVersion!, ForgeVersionName);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using CarpLauncher.Contracts.Services;
+using CarpLauncher.Controls;
 using CarpLauncher.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -18,33 +19,35 @@ public partial class SettingsViewModel : ObservableRecipient
     private readonly DefaultGameCore core = Core.Core.GetGameCore();
 
     [ObservableProperty]
-    private List<string> _appThemes = new()
-    {
-        "Default", "Light", "Dark"
-    };
+    private List<string> _appThemes =
+    [
+        nameof(ElementTheme.Default),
+        nameof(ElementTheme.Light),
+        nameof(ElementTheme.Dark)
+    ];
+
     [ObservableProperty]
     private string? _appTheme;
-    partial void OnAppThemeChanged(string value)
+
+    partial void OnAppThemeChanged(string? value)
     {
         if (value is null) return;
 
-        switch (value)
+        ElementTheme theme = value switch
         {
-            case "Default":
-                _themeSelectorService.SetThemeAsync(ElementTheme.Default);
-                break;
-            case "Light":
-                _themeSelectorService.SetThemeAsync(ElementTheme.Light);
-                break;
-            case "Dark":
-                _themeSelectorService.SetThemeAsync(ElementTheme.Dark);
-                break;
-        }
+            "Default" => ElementTheme.Default,
+            "Light" => ElementTheme.Light,
+            "Dark" => ElementTheme.Dark,
+            _ => throw new ArgumentException("Invalid theme value")
+        };
+
+        _themeSelectorService.SetThemeAsync(theme);
     }
 
 
     [ObservableProperty]
     private string _backgroundImageUrl;
+
     [RelayCommand]
     private async Task ChooseBackgroundImageUrlAsync()
     {
@@ -81,17 +84,19 @@ public partial class SettingsViewModel : ObservableRecipient
             return;
         }
     }
+
     [RelayCommand]
-    private async void ResetBackgroundImageUrl()
+    private async Task ResetBackgroundImageUrl()
     {
         BackgroundImageUrl = "/";
-        await _localSettingsService.SaveSettingAsync<string>("BackgroundImageUrl", "/");
+        await _localSettingsService.SaveSettingAsync("BackgroundImageUrl", "/");
         App.GetService<HomeViewModel>().BackgroundImageUrl = "/";
     }
 
 
     [ObservableProperty]
     private string _gameRootPath;
+
     [RelayCommand]
     private async Task ChooseGameRootPathAsync()
     {
@@ -127,45 +132,63 @@ public partial class SettingsViewModel : ObservableRecipient
 
     [ObservableProperty]
     private bool _isVersionIsolate;
+
     partial void OnIsVersionIsolateChanged(bool value) => _localSettingsService.SaveSettingAsync("IsVersionIsolate", value);
 
 
     [ObservableProperty]
     private string? _javaExecutablePath;
+
     [ObservableProperty]
     private ObservableCollection<string> _javaFoundInSystem = [];
+
     partial void OnJavaExecutablePathChanged(string? value)
     {
         if (value is null) return;
 
         _localSettingsService.SaveSettingAsync("JavaExecutablePath", value);
     }
+
     [RelayCommand]
     private async Task SearchForJavaInSystem()
     {
-        var javas = await SystemInfoHelper.FindJava(false).ToListAsync();
+        var dialog = DialogHelper.GetIndeterminateProgressDialog("Searching...", "Hide");
+
+        _ = dialog.ShowAsync();
+
+        var javas = await SystemInfoHelper.FindJava().ToListAsync();
+
         if (javas.Count == 0)
         {
+            dialog.Hide();
             await DialogHelper.ShowRegularContentDialogAsync
                 ("Error", "No Java found in system!");
             return;
         }
+
         if (javas.Contains(JavaExecutablePath) && javas.Count == 1)
         {
+            dialog.Hide();
             await DialogHelper.ShowRegularContentDialogAsync
                 ("Error", "Java already existed!");
             return;
         }
+
         if (javas.Contains(JavaExecutablePath) && javas.Count >= 2) javas.Remove(JavaExecutablePath);
+
+        dialog.Hide();
 
         JavaFoundInSystem = new ObservableCollection<string>(javas)
         {
             JavaExecutablePath
         };
+
         JavaExecutablePath = javas[0];
+
         await _localSettingsService.SaveSettingAsync("JavaExecutablePath", javas[0]);
         await DialogHelper.ShowRegularContentDialogAsync("Done", $"{javas.Count} Java found in your system!");
     }
+
     [RelayCommand]
     private async Task ChooseJavaExecutablePath()
     {

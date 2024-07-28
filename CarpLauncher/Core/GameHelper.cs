@@ -1,4 +1,6 @@
-﻿using ProjBobcat.Class.Model;
+﻿using ProjBobcat.Class.Helper;
+using ProjBobcat.Class.Model;
+using ProjBobcat.Class.Model.LauncherProfile;
 using ProjBobcat.DefaultComponent.Launch.GameCore;
 using System.Collections.ObjectModel;
 
@@ -13,19 +15,222 @@ namespace CarpLauncher.Core
             core = gameCore;
         }
 
-        public static ObservableCollection<VersionInfo> GetAllGames(ObservableCollection<VersionInfo> before)
+        public static ObservableCollection<VersionInfo> GetAllGames(ObservableCollection<VersionInfo> oParam_0 = null!, bool bParam_1 = false)
         {
-            ObservableCollection<VersionInfo> games;
-            try
+            if (RefetchAllProfiles(bParam_1))
             {
-                games = new ObservableCollection<VersionInfo>(core.VersionLocator.GetAllGames());
+                return new(core.VersionLocator.GetAllGames());
             }
-            catch
+            else
+                return oParam_0;
+        }
+
+        public static GameProfileModel? GetGameProfileModel(string name)
+        {
+            var profileDict = core.VersionLocator
+                                                               .LauncherProfileParser!
+                                                               .LauncherProfile
+                                                               .Profiles;
+            if (profileDict!.Count is > 0)
             {
-                return before;
+                for (int i = 0; i < profileDict.Count; i++)
+                {
+                    KeyValuePair<string, GameProfileModel> pair = profileDict.ElementAt(i);
+                    if (pair.Value.Name == name)
+                    {
+                        return pair.Value;
+                    }
+                }
+
+                return default!;
+            }
+            else return default!;
+        }
+
+        public static bool RefetchAllProfiles(bool removeUnusedProfile = false)
+        {
+            var di = new DirectoryInfo(GamePathHelper.GetVersionPath(core.RootPath));
+
+            var profiles = core.VersionLocator
+                                                            .LauncherProfileParser!
+                                                            .LauncherProfile
+                                                            .Profiles!;
+
+            foreach (DirectoryInfo folder in di.GetDirectories())
+            {
+                if (profiles.Count > 0)
+                {
+                    bool isRepeated = false;
+
+                    for (int i = 0; i < profiles.Count; i++)
+                    {
+                        KeyValuePair<string, GameProfileModel> pair = profiles.ElementAt(i);
+
+                        if (folder.Name == pair.Value.Name)
+                        {
+                            isRepeated = true;
+                            goto END_LOOP;
+                        }
+                    }
+                END_LOOP:
+                    if (isRepeated) continue;
+                }
+
+                string[] subFileNames = Directory.GetFiles(folder.FullName);
+
+                foreach (string fileName in subFileNames)
+                {
+                    if (Path.GetExtension(fileName) != ".json")
+                    {
+                        continue;
+                    }
+                    if (folder.Name == Path.GetFileNameWithoutExtension(fileName))
+                    {
+                        var name = folder.Name;
+                        core.VersionLocator.LauncherProfileParser.LauncherProfile.Profiles!.Add(name.ToGuidHash().ToString("N"),
+                        new GameProfileModel
+                        {
+                            GameDir = folder.FullName,
+                            LastVersionId = name,
+                            Name = name,
+                            Created = DateTime.Now
+                        });
+                        core.VersionLocator.LauncherProfileParser.SaveProfile();
+                    }
+                }
             }
 
-            return games;
+            if (removeUnusedProfile is true)
+            {
+                if (profiles.Count > 0)
+                {
+                    var removeList = new List<string>();
+
+                    for (int i = 0; i < profiles.Count; i++)
+                    {
+                        var pair = profiles.ElementAt(i);
+
+                        bool matchFound = false;
+
+                        foreach (DirectoryInfo folder in di.GetDirectories())
+                        {
+                            if (folder.Name == pair.Value.Name)
+                            {
+                                matchFound = true;
+                            }
+                        }
+
+                        if (!matchFound)
+                        {
+                            removeList.Add(pair.Key);
+                        }
+                    }
+
+                    foreach (string item in removeList)
+                    {
+                        core.VersionLocator.LauncherProfileParser!.RemoveGameProfile(item);
+                    }
+                    core.VersionLocator.LauncherProfileParser!.SaveProfile();
+                }
+            }
+
+            return true;
+        }
+
+        public static void RenameGameProfile(string name, string nameAfter)
+        {
+            var profiles = core.VersionLocator
+                                                            .LauncherProfileParser!
+                                                            .LauncherProfile
+                                                            .Profiles!;
+            if (profiles.Count is > 0)
+            {
+                for (int i = 0; i < profiles!.Count; i++)
+                {
+                    KeyValuePair<string, GameProfileModel> pair = profiles.ElementAt(i);
+                    if (pair.Value.Name == name)
+                    {
+                        var versionPath = Path.Combine(GamePathHelper.GetVersionPath(core.RootPath));
+
+                        string[] fileNames = Directory.GetFiles(Path.Combine(versionPath, name));
+
+                        foreach (string fileName in fileNames)
+                        {
+                            if (Path.GetFileNameWithoutExtension(fileName) == name)
+                            {
+                                try
+                                {
+                                    string nameAfterWithExtension = Path.GetExtension(fileName) switch
+                                    {
+                                        ".json" => $"{nameAfter}.json",
+                                        ".jar" => $"{nameAfter}.jar",
+                                        _ => throw new ArgumentException("Invalid extension name.")
+                                    };
+
+                                    File.Move(fileName, Path.Combine(versionPath, name, nameAfterWithExtension));
+                                }
+                                catch (ArgumentException)
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+
+                        Directory.Move(
+                            Path.Combine(GamePathHelper.GetVersionPath(core.RootPath), name),
+                            Path.Combine(GamePathHelper.GetVersionPath(core.RootPath), nameAfter
+                        ));
+
+                        pair.Value.Name = nameAfter;
+                    }
+                }
+                core.VersionLocator.LauncherProfileParser.SaveProfile();
+            }
+        }
+
+        public static void RemoveGameProfile(string name)
+        {
+            var profileDict = core.VersionLocator
+                                                               .LauncherProfileParser!
+                                                               .LauncherProfile
+                                                               .Profiles;
+            string identifyName = name;
+            foreach (KeyValuePair<string, GameProfileModel> pair in profileDict!)
+            {
+                if (pair.Value.Name == name)
+                {
+                    if (pair.Value.Name == pair.Key)
+                    {
+                        identifyName = pair.Value.Name;
+                    }
+                    else
+                    {
+                        identifyName = pair.Key;
+                    }
+                }
+            }
+            core.VersionLocator.LauncherProfileParser!.RemoveGameProfile(identifyName);
+            core.VersionLocator.LauncherProfileParser!.SaveProfile();
+        }
+
+        [Obsolete("Use GuidHash as the profile identifier.")]
+        public static void ResetAllProfilesIdentifier()
+        {
+            var profileDict = core.VersionLocator.LauncherProfileParser!.LauncherProfile.Profiles;
+            var currentCount = profileDict?.Count;
+            if (currentCount is > 0)
+            {
+                for (int i = 0; i < currentCount; i++)
+                {
+                    KeyValuePair<string, GameProfileModel> pair = profileDict.ElementAt(i);
+                    if (pair.Key != pair.Value.Name)
+                    {
+                        profileDict.Add(pair.Value.Name!, pair.Value);
+                        profileDict.Remove(pair.Key);
+                    }
+                }
+                core.VersionLocator.LauncherProfileParser.SaveProfile();
+            }
         }
 
         public static List<string> GetDefaultVersionManifest()
@@ -83,12 +288,5 @@ namespace CarpLauncher.Core
                 "1.18.2"
             };
         }
-    }
-
-    public enum Minecraft
-    {
-        Vanilla = 0,
-        Forge = 1,
-        Fabric = 2
     }
 }

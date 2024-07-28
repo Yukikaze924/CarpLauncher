@@ -7,7 +7,8 @@
     <ApplicationIcon>Assets\Logo.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;arm64</Platforms>
-    <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
+    <!--<RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>-->
+	<RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <PublishProfile>Properties\PublishProfiles\win10-$(Platform).pubxml</PublishProfile>
     <UseRidGraph>true</UseRidGraph>
 	<ImplicitUsings>enable</ImplicitUsings>
@@ -16,11 +17,17 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <WindowsPackageType>None</WindowsPackageType>
+	<SelfContained>true</SelfContained>
   </PropertyGroup>
-  <ItemGroup>
-    <None Remove="Controls\ContentDialog.xaml" />
-    <None Remove="Controls\ProgressDialog.xaml" />
-  </ItemGroup>
+
+	<ItemGroup>
+		<Content Include="Assets\*.*">
+			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
+		</Content>
+		<Content Include="Assets\**\*.*">
+			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
 
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
@@ -50,7 +57,7 @@
     <PackageReference Include="CommunityToolkit.WinUI.Controls.Segmented" Version="8.0.240109" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.0.240109" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240311000" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240627000" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="2.0.9" />
     <PackageReference Include="ProjBobcat" Version="1.40.0" />
     <PackageReference Include="WinUIEx" Version="2.3.4" />

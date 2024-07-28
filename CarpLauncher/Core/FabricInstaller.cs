@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using ProjBobcat.Class.Helper;
+﻿using ProjBobcat.Class.Helper;
 using ProjBobcat.Class.Model.Fabric;
 using ProjBobcat.DefaultComponent.Launch.GameCore;
+using System.Text.Json;
 
 namespace CarpLauncher.Core
 {
@@ -16,16 +16,16 @@ namespace CarpLauncher.Core
         {
             var selectedArtifact = await GetFabricArtifactAsync(version);
 
+            if (selectedArtifact == null) { throw new NullReferenceException(); }
+
             var fabricInstaller = new ProjBobcat.DefaultComponent.Installer.FabricInstaller
             {
                 LoaderArtifact = selectedArtifact!,
                 VersionLocator = core.VersionLocator,
                 RootPath = core.RootPath,
-                CustomId = version,
+                CustomId = "1.19.2-fabric 0.16.0",
                 InheritsFrom = version
             };
-
-            if (fabricInstaller == null ) { throw new NullReferenceException(); }
 
             await fabricInstaller.InstallTaskAsync();
         }
@@ -37,21 +37,18 @@ namespace CarpLauncher.Core
             var json = await responese.Content.ReadAsStringAsync();
 
             try
-            {   // 在将 json 内容反序列化为FabricLoaderArtifactModel集合时抛出了异常
-                var artifacts = JsonConvert.DeserializeObject<List<FabricLoaderArtifactModel>>(json);
+            {
+                var artifacts = JsonSerializer.Deserialize<List<FabricLoaderArtifactModel>>(json);
+
                 // 获取单个 Loader Artifact
                 var selectedArtifact = artifacts[0];
 
                 return selectedArtifact ?? default;
             }
-            catch (Exception ex)
+            catch
             {
-                // 异常内容
-                // Error converting value "net.minecraft.launchwrapper.Launch" to type 'System.Text.Json.JsonElement'.
-                // Path '[196].launcherMeta.mainClass', line 13478, position 55.
+                return default;
             }
-
-            return default;
         }
     }
 }

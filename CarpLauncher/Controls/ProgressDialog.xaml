@@ -10,9 +10,9 @@
 
     <StackPanel HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
-                Padding="15 30">
-        <ProgressBar HorizontalAlignment="Stretch"
-                     IsIndeterminate="True"
+                Padding="20 10">
+        <ProgressBar Name="ProgressBar"
+                     HorizontalAlignment="Stretch"
                      ShowPaused="False"
                      ShowError="False"
                      />
